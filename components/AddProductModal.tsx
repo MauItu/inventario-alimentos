@@ -163,10 +163,11 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
           )}
           <div className="flex justify-between space-x-4">
             <Button type="submit">Guardar y Agregar Otro</Button>
-            <Button type="button" onClick={() => {
-              handleAddProduct(new Event('submit') as any)
-              onClose()
-            }}>Guardar y Cerrar</Button>
+            <Button type="button" onClick={(e) => {
+                e.preventDefault();
+                handleAddProduct(e);
+                onClose();
+              }}>Guardar y Cerrar</Button>
           </div>
         </form>
       </DialogContent>
