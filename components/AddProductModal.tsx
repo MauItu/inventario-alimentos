@@ -59,10 +59,10 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
     // Mantener la categoría, tipo y unidad para facilitar la entrada de productos similares
   }
 
-  const handleCancel = () => {
+  /*const handleCancel = () => {
     resetForm()
     onClose()
-  }
+  }*/
 
   const resetForm = () => {
     setName('')
