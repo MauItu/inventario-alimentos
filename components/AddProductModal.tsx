@@ -64,7 +64,7 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
     onClose()
   }*/
 
-  const resetForm = () => {
+  /*const resetForm = () => {
     setName('')
     setCategory('')
     setType('perecedero')
@@ -72,7 +72,7 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
     setUnit('unidades')
     setEntryDate('')
     setExpirationDate('')
-  }
+  }*/
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
