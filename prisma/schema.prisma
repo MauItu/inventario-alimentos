@@ -1,16 +1,29 @@
 // prisma/schema.prisma
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url          = env("DATABASE_URL")
 }
-
 generator client {
   provider = "prisma-client-js"
 }
-
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  createdAt DateTime @default(now())
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  products  Product[]
+}
+
+
+model Product {
+  id             Int       @id @default(autoincrement())
+  email          String
+  food_name           String
+  category       String
+  type_food           String
+  quantity       Float
+  type_measure           String
+  date_entry      DateTime
+  expiration_date DateTime?
+  userId         Int
+  user           User      @relation(fields: [userId], references: [id])
+
 }
