@@ -10,23 +10,22 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
-  products  Product[]
+  id        String   @id @default(cuid())
+  email     String   @unique
+
+  food      Food[]   @relation(name: "UserFoods")
 }
 
+model Food {
+  id          String   @id @default(cuid())
+  foodName    String   @unique
+  category    String //lacrteos, proteina, verduras, frutas
+  typeFood    String //si es pedecedero o no
+  quantity    Int
+  typeMeasure String
+  dateEntry   DateTime
+  expirationDate DateTime?
+  email       String
 
-model Product {
-  id             Int       @id @default(autoincrement())
-  email          String
-  food_name           String
-  category       String
-  type_food           String
-  quantity       Float
-  type_measure           String
-  date_entry      DateTime
-  expiration_date DateTime?
-  userId         Int
-  user           User      @relation(fields: [userId], references: [id])
-
+  user        User  @relation(name: "UserFoods", fields: [email], references: [email])
 }
