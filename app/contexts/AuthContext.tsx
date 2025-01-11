@@ -1,7 +1,7 @@
 'use client'
-//para probar 1
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import prisma from '@/prisma/db'
+import axios from 'axios'
 
 type Product = {
   id: string
@@ -42,6 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
+    // aqui llamas a list products
     const storedUser = localStorage.getItem('user')
     if (storedUser) {
       setUser(JSON.parse(storedUser))
@@ -49,31 +50,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [])
 
   const login = async (email: string) => {
-    const existingUser = await prisma.user.findUnique({ where: { email } })
-    if (existingUser) {
-      const userProducts = await prisma.food.findMany({ where: { email } })
-      const products = userProducts.map(product => ({
-        id: product.id,
-        name: product.foodName,
-        category: product.category,
-        type: product.typeFood as 'perecedero' | 'no perecedero',
-        quantity: product.quantity,
-        unit: product.typeMeasure as 'unidades' | 'kilos' | 'libras',
-        entryDate: product.dateEntry.toISOString(),
-        expirationDate: product.expirationDate ? product.expirationDate.toISOString() : undefined
-      }))
-      const userWithProducts = { ...existingUser, products }
-      setUser(userWithProducts)
-      localStorage.setItem('user', JSON.stringify(userWithProducts))
-      return true
+    try {
+      const response = await axios.get(`/api/users/${email}`)
+      const user = {
+        email: response.data.email,
+        products: []
+      }
+      setUser(user)
+      localStorage.setItem('user', JSON.stringify(user))
+      return response.status === 200
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      return false
     }
-    return false
   }
 
   const logout = () => {
     setUser(null)
     localStorage.removeItem('user')
   }
+
+  const createAccount = async (email: string) => {
+    const response = await axios.post('/api/users', { email })
+    return response.status === 200
+  }
+
+  // const listProducts = async (email: string) => {
+  // }
 
   const addProduct = async (product: Product) => {
     if (user) {
@@ -119,24 +122,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       })
       localStorage.setItem('user', JSON.stringify(user))
     }
-  }
-
-  const createAccount = async (email: string) => {
-    const existingUser = await prisma.user.findUnique({ where: { email } })
-    if (existingUser) {
-      return false
-    }
-    const newUser = await prisma.user.create({
-      data: {
-        email,
-        food: {
-          create: []
-        }
-      }
-    })
-    setUser({ ...newUser, products: [] })
-    localStorage.setItem('user', JSON.stringify(newUser))
-    return true
   }
 
   return (

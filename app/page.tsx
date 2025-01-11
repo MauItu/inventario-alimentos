@@ -2,25 +2,15 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-// import { useAuth } from '@/app/contexts/AuthContext'
+import { useAuth } from '@/app/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/app/hooks/use-toast'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
-  // const { login, createAccount } = useAuth()
+  const { login, createAccount } = useAuth()
   const router = useRouter()
-
-  const login = (email: string) => {
-    console.log('login', email)
-    return true
-  }
-
-  const createAccount = (email: string) => {
-    console.log('createAccount', email)
-    return true
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

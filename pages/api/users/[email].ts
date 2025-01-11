@@ -10,10 +10,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           email: email as string
         }
       })
-      console.log(user)
+      if (!user) {
+        throw new Error('User not found')
+      }
       return res.status(200).json(user)
     } catch (error) {
-      return res.status(404).end(error)
+      return res.status(404).json(error)
     }
 
   } else {
