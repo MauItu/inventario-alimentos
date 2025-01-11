@@ -15,9 +15,10 @@ export default function LoginPage() {
   const { login, createAccount } = useAuth()
   const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (login(email)) {
+    const isLoggedIn = await login(email)
+    if (isLoggedIn) {
       router.push('/dashboard')
     } else {
       toast({
@@ -32,8 +33,8 @@ export default function LoginPage() {
     }
   }
 
-  const handleCreateAccount = () => {
-    if (createAccount(email)) {
+  const handleCreateAccount = async () => {
+    if (await createAccount(email)) {
       toast({
         title: "Cuenta creada",
         description: "Se ha creado una nueva cuenta con éxito.",
