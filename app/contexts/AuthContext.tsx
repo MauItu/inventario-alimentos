@@ -1,8 +1,10 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import prisma from '@/prisma/db'
 
 type Product = {
+  id: string
   name: string
   category: string
   type: 'perecedero' | 'no perecedero'
@@ -19,11 +21,11 @@ type User = {
 
 type AuthContextType = {
   user: User | null
-  login: (email: string) => boolean
+  login: (email: string) => Promise<boolean>
   logout: () => void
   addProduct: (product: Product) => void
-  removeProduct: (index: number) => void
-  createAccount: (email: string) => boolean
+  removeProduct: (id: string) => void
+  createAccount: (email: string) => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -46,12 +48,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [])
 
-  const login = (email: string) => {
-    const storedUsers = JSON.parse(localStorage.getItem('users') || '[]')
-    const existingUser = storedUsers.find((u: User) => u.email === email)
+  const login = async (email: string) => {
+    const existingUser = await prisma.user.findUnique({ where: { email } })
     if (existingUser) {
-      setUser(existingUser)
-      localStorage.setItem('user', JSON.stringify(existingUser))
+      const userProducts = await prisma.food.findMany({ where: { email } })
+      const products = userProducts.map(product => ({
+        id: product.id,
+        name: product.foodName,
+        category: product.category,
+        type: product.typeFood as 'perecedero' | 'no perecedero',
+        quantity: product.quantity,
+        unit: product.typeMeasure as 'unidades' | 'kilos' | 'libras',
+        entryDate: product.dateEntry.toISOString(),
+        expirationDate: product.expirationDate ? product.expirationDate.toISOString() : undefined
+      }))
+      const userWithProducts = { ...existingUser, products }
+      setUser(userWithProducts)
+      localStorage.setItem('user', JSON.stringify(userWithProducts))
       return true
     }
     return false
@@ -62,43 +75,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('user')
   }
 
-  const addProduct = (product: Product) => {
+  const addProduct = async (product: Product) => {
     if (user) {
-      const updatedUser = { ...user, products: [...user.products, product] }
-      setUser(updatedUser)
-      localStorage.setItem('user', JSON.stringify(updatedUser))
-      
-      // Update the user in the users array
-      const storedUsers = JSON.parse(localStorage.getItem('users') || '[]')
-      const updatedUsers = storedUsers.map((u: User) => u.email === user.email ? updatedUser : u)
-      localStorage.setItem('users', JSON.stringify(updatedUsers))
+      const newProduct = await prisma.food.create({
+        data: {
+          foodName: product.name,
+          category: product.category,
+          typeFood: product.type,
+          quantity: product.quantity,
+          typeMeasure: product.unit,
+          dateEntry: new Date(product.entryDate),
+          expirationDate: product.expirationDate ? new Date(product.expirationDate) : null,
+          email: user.email
+        }
+      })
+      setUser({
+        ...user,
+        products: [
+          ...user.products,
+          {
+            id: newProduct.id,
+            name: newProduct.foodName,
+            category: newProduct.category,
+            type: newProduct.typeFood as 'perecedero' | 'no perecedero',
+            quantity: newProduct.quantity,
+            unit: newProduct.typeMeasure as 'unidades' | 'kilos' | 'libras',
+            entryDate: newProduct.dateEntry.toISOString(),
+            expirationDate: newProduct.expirationDate ? newProduct.expirationDate.toISOString() : undefined
+          }
+        ]
+      })
+      localStorage.setItem('user', JSON.stringify(user))
     }
   }
 
-  const removeProduct = (index: number) => {
+  const removeProduct = async (id: string) => {
     if (user) {
-      const updatedProducts = [...user.products]
-      updatedProducts.splice(index, 1)
-      const updatedUser = { ...user, products: updatedProducts }
-      setUser(updatedUser)
-      localStorage.setItem('user', JSON.stringify(updatedUser))
-
-      // Update the user in the users array
-      const storedUsers = JSON.parse(localStorage.getItem('users') || '[]')
-      const updatedUsers = storedUsers.map((u: User) => u.email === user.email ? updatedUser : u)
-      localStorage.setItem('users', JSON.stringify(updatedUsers))
+      await prisma.food.delete({ where: { id } })
+      const updatedProducts = user.products.filter((product) => product.id !== id)
+      setUser({
+        ...user,
+        products: updatedProducts
+      })
+      localStorage.setItem('user', JSON.stringify(user))
     }
   }
 
-  const createAccount = (email: string) => {
-    const storedUsers = JSON.parse(localStorage.getItem('users') || '[]')
-    if (storedUsers.some((u: User) => u.email === email)) {
+  const createAccount = async (email: string) => {
+    const existingUser = await prisma.user.findUnique({ where: { email } })
+    if (existingUser) {
       return false
     }
-    const newUser = { email, products: [] }
-    storedUsers.push(newUser)
-    localStorage.setItem('users', JSON.stringify(storedUsers))
-    setUser(newUser)
+    const newUser = await prisma.user.create({
+      data: {
+        email,
+        food: {
+          create: []
+        }
+      }
+    })
+    setUser({ ...newUser, products: [] })
     localStorage.setItem('user', JSON.stringify(newUser))
     return true
   }
@@ -109,4 +145,3 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </AuthContext.Provider>
   )
 }
-

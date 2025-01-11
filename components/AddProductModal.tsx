@@ -13,6 +13,7 @@ import { toast } from '@/app/hooks/use-toast'
 type ProductUnit = 'unidades' | 'kilos' | 'libras'
 
 type Product = {
+  id: string
   name: string
   category: string
   type: 'perecedero' | 'no perecedero'
@@ -32,9 +33,10 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
   const [entryDate, setEntryDate] = useState('')
   const [expirationDate, setExpirationDate] = useState('')
 
-  const handleAddProduct = (e: React.FormEvent) => {
+  const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     const newProduct: Product = {
+      id: crypto.randomUUID(),
       name,
       category,
       type,
@@ -43,7 +45,7 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
       entryDate,
       expirationDate: type === 'perecedero' ? expirationDate : undefined,
     }
-    addProduct(newProduct)
+    await addProduct(newProduct)
     toast({
       title: "Producto agregado",
       description: "El producto ha sido agregado exitosamente.",
@@ -53,26 +55,14 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
 
   const handleAddAnother = () => {
     setName('')
-    setQuantity('')
-    setEntryDate('')
-    setExpirationDate('')
-    // Mantener la categoría, tipo y unidad para facilitar la entrada de productos similares
-  }
-
-  /*const handleCancel = () => {
-    resetForm()
-    onClose()
-  }*/
-
-  /*const resetForm = () => {
-    setName('')
     setCategory('')
     setType('perecedero')
     setQuantity('')
     setUnit('unidades')
     setEntryDate('')
     setExpirationDate('')
-  }*/
+    // Mantener la categoría, tipo y unidad para facilitar la entrada de productos similares
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -161,17 +151,12 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
               />
             </div>
           )}
-          <div className="flex justify-between space-x-4">
-            <Button type="submit">Guardar y Agregar Otro</Button>
-            <Button type="button" onClick={(e) => {
-                e.preventDefault();
-                handleAddProduct(e);
-                onClose();
-              }}>Guardar y Cerrar</Button>
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={onClose}>Cancelar</Button>
+            <Button type="submit">Agregar Producto</Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
   )
 }
-

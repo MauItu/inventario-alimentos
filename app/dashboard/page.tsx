@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AddProductModal } from '@/components/AddProductModal'
 import { ProductList } from '@/components/ProductList'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation' 
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()
@@ -45,4 +45,3 @@ export default function DashboardPage() {
     </div>
   )
 }
-
