@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-react'
-import { useAuth } from '@/app/contexts/AuthContext'
+//import { useAuth } from '@/app/contexts/AuthContext'
 import { Product } from './types'
 
 export function ProductList({ products }: { products: Product[] }) {

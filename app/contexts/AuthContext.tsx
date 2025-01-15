@@ -48,6 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('user', JSON.stringify(user))
       return response.status === 200
     } catch (error) {
+      console.log('error:', error)
       return false
     }
   }
@@ -72,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         if (response.status === 200) {
           const newProduct = response.data;
-          setUser({
+          setUser({         //para mostrar la lista de producto, es similar, solo que ese muestra la BD en productos
             ...user,
             products: [
               ...user.products,
