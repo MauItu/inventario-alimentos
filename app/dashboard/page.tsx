@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AddProductModal } from '@/components/AddProductModal'
 import { ProductList } from '@/components/ProductList'
-import { useRouter } from 'next/navigation' 
+import { useRouter } from 'next/navigation'
+import { Product } from '@/components/types'
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()

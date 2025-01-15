@@ -1,6 +1,12 @@
+export type ProductUnit = 'unidades' | 'kilos' | 'libras';
+
 export interface Product {
-    foodName: string;
-    typeFood: string;
-    typeMeasure: string;
-    dateEntry: Date;
-  }
+  id?: string;
+  foodName: string;
+  category: string;
+  typeFood: string;
+  quantity: number;
+  typeMeasure: ProductUnit;
+  dateEntry: string;
+  expirationDate?: string;
+}

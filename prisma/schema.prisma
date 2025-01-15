@@ -18,7 +18,7 @@ model User {
 
 model Food {
   id          String   @id @default(cuid())
-  foodName    String   @unique
+  foodName    String   
   category    String //lacrteos, proteina, verduras, frutas
   typeFood    String //si es pedecedero o no
   quantity    Int

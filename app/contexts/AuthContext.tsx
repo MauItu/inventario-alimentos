@@ -1,18 +1,7 @@
 'use client'
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import prisma from '@/prisma/db'
 import axios from 'axios'
-
-type Product = {
-  id: string
-  name: string
-  category: string
-  type: 'perecedero' | 'no perecedero'
-  quantity: number
-  unit: 'unidades' | 'kilos' | 'libras'
-  entryDate: string
-  expirationDate?: string
-}
+import { Product } from '@/components/types'
 
 type User = {
   email: string
@@ -24,8 +13,8 @@ type AuthContextType = {
   login: (email: string) => Promise<boolean>
   logout: () => void
   addProduct: (product: Product) => void
-  removeProduct: (id: string) => void
   createAccount: (email: string) => Promise<boolean>
+  loading: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -40,9 +29,8 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
-
+  const [loading, setLoading] = useState(false)
   useEffect(() => {
-    // aqui llamas a list products
     const storedUser = localStorage.getItem('user')
     if (storedUser) {
       setUser(JSON.parse(storedUser))
@@ -59,7 +47,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(user)
       localStorage.setItem('user', JSON.stringify(user))
       return response.status === 200
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       return false
     }
@@ -75,57 +62,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return response.status === 200
   }
 
-  // const listProducts = async (email: string) => {
-  // }
-
   const addProduct = async (product: Product) => {
     if (user) {
-      const newProduct = await prisma.food.create({
-        data: {
-          foodName: product.name,
-          category: product.category,
-          typeFood: product.type,
-          quantity: product.quantity,
-          typeMeasure: product.unit,
-          dateEntry: new Date(product.entryDate),
-          expirationDate: product.expirationDate ? new Date(product.expirationDate) : null,
+      setLoading(true)
+      try {
+        const response = await axios.post('/api/products', {
+          ...product,
           email: user.email
+        });
+        if (response.status === 200) {
+          const newProduct = response.data;
+          setUser({
+            ...user,
+            products: [
+              ...user.products,
+              {
+                id: newProduct.id,
+                foodName: newProduct.foodName,
+                category: newProduct.category,
+                typeFood: newProduct.typeFood,
+                quantity: newProduct.quantity,
+                typeMeasure: newProduct.typeMeasure,
+                dateEntry: newProduct.dateEntry,
+                expirationDate: newProduct.expirationDate
+              }
+            ]
+          });
+          localStorage.setItem('user', JSON.stringify(user));
         }
-      })
-      setUser({
-        ...user,
-        products: [
-          ...user.products,
-          {
-            id: newProduct.id,
-            name: newProduct.foodName,
-            category: newProduct.category,
-            type: newProduct.typeFood as 'perecedero' | 'no perecedero',
-            quantity: newProduct.quantity,
-            unit: newProduct.typeMeasure as 'unidades' | 'kilos' | 'libras',
-            entryDate: newProduct.dateEntry.toISOString(),
-            expirationDate: newProduct.expirationDate ? newProduct.expirationDate.toISOString() : undefined
-          }
-        ]
-      })
-      localStorage.setItem('user', JSON.stringify(user))
+      } catch (error) {
+        console.error('error papi adding product:', error);
+      } finally {
+        setLoading(false);
+      }
     }
   }
-
-  const removeProduct = async (id: string) => {
-    if (user) {
-      await prisma.food.delete({ where: { id } })
-      const updatedProducts = user.products.filter((product) => product.id !== id)
-      setUser({
-        ...user,
-        products: updatedProducts
-      })
-      localStorage.setItem('user', JSON.stringify(user))
-    }
-  }
-
   return (
-    <AuthContext.Provider value={{ user, login, logout, addProduct, removeProduct, createAccount }}>
+    <AuthContext.Provider value={{ user, login, logout, addProduct, createAccount, loading }}>
       {children}
     </AuthContext.Provider>
   )

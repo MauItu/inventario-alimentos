@@ -2,20 +2,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-react'
 import { useAuth } from '@/app/contexts/AuthContext'
-
-type Product = {
-  id: string
-  foodName: string
-  category: string
-  typeFood: string
-  quantity: number
-  typeMeasure: string
-  dateEntry: string
-  expirationDate?: string
-}
+import { Product } from './types'
 
 export function ProductList({ products }: { products: Product[] }) {
-  const { removeProduct } = useAuth()
+  //const { removeProduct } = useAuth()
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -27,7 +17,7 @@ export function ProductList({ products }: { products: Product[] }) {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => removeProduct(product.id)}
+                //onClick={() => removeProduct(product.id)}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
