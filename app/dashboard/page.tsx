@@ -1,17 +1,35 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AddProductModal } from '@/components/AddProductModal'
 import { ProductList } from '@/components/ProductList'
 import { useRouter } from 'next/navigation'
+import { getProductsByUser } from '@/pages/api/products'
+import { Product } from '@/components/types'
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [products, setProducts] = useState<Product[]>([])
   const router = useRouter()
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (user) {
+        try {
+          const products = await getProductsByUser(user.email)
+          setProducts(products)
+        } catch (error) {
+          console.error('Error fetching products:', error)
+        }
+      }
+    }
+
+    fetchProducts()
+  }, [user])
 
   if (!user) {
     return <div>No autorizado</div>
@@ -38,8 +56,8 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           {
-            user && user.products && user.products.length > 0 ?
-              <ProductList products={user.products} /> : null
+            products.length > 0 ?
+              <ProductList products={products} /> : <p>No hay productos disponibles.</p>
           }
         </CardContent>
       </Card>

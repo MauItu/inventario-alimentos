@@ -28,13 +28,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
     } else if (req.method === 'GET') {
+        const { email } = req.query
+
+        if (!email || typeof email !== 'string') {
+            return res.status(400).json({ error: 'Email is required' })
+        }
+
         try {
-            const listProducts = await prisma.food.findMany()
+            const listProducts = await prisma.food.findMany({
+                where: { email }
+            })
             return res.status(200).json(listProducts)
         } catch (error) {
             return res.status(500).json({ error: 'Something went wrong ' + JSON.stringify(error) })
         }
     } else {
         return res.status(405).json({ error: 'Method not allowed' })
+    }
+}
+
+export async function getProductsByUser(email: string) {
+    try {
+        const products = await prisma.food.findMany({
+            where: { email }
+        })
+        return products
+    } catch (error) {
+        throw new Error('Error fetching products: ' + JSON.stringify(error))
     }
 }

@@ -6,7 +6,7 @@ export interface Product {
   category: string;
   typeFood: string;
   quantity: number;
-  typeMeasure: ProductUnit;
-  dateEntry: string;
-  expirationDate?: string;
+  typeMeasure: ProductUnit | string;
+  dateEntry: Date;
+  expirationDate?: Date  | null;
 }

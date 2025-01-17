@@ -29,8 +29,8 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
       typeFood,
       quantity: parseFloat(quantity),
       typeMeasure,
-      dateEntry,
-      expirationDate: typeFood === 'perecedero' ? expirationDate : undefined,
+      dateEntry: new Date(dateEntry),
+      expirationDate: typeFood === 'perecedero' ? new Date(expirationDate) : undefined,
     };
     try {
       await addProduct(newProduct);
