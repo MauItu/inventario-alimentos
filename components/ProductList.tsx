@@ -25,7 +25,7 @@ export function ProductList({ products }: { products: Product[] }) {
             <p className="text-sm text-gray-600 mb-1">Categoría: {product.category}</p>
             <p className="text-sm text-gray-600 mb-1">Tipo: {product.typeFood}</p>
             <p className="text-sm text-gray-600 mb-1">Cantidad: {product.quantity} {product.typeMeasure}</p>
-            <p className="text-sm text-gray-600 mb-1">Fecha de ingreso: {product.dateEntry.toString()}</p>
+            <p className="text-sm text-gray-600 mb-1">Fecha de ingreso: {product.dateEntry.toString()} </p>
             {product.expirationDate && (
               <p className="text-sm text-gray-600">Fecha de caducidad: {product.expirationDate.toString()}</p>
             )}

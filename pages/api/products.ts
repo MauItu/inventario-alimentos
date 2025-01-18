@@ -54,6 +54,7 @@ export async function getProductsByUser(email: string) {
         })
         return products
     } catch (error) {
+        //console.error('Error fetching products:', error)
         throw new Error('Error fetching products: ' + JSON.stringify(error))
     }
 }

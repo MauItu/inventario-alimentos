@@ -15,6 +15,7 @@ type AuthContextType = {
   addProduct: (product: Product) => void
   createAccount: (email: string) => Promise<boolean>
   loading: boolean
+  mostrarproductos: (email: string) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -98,8 +99,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
   }
+
+  const mostrarproductos = async (email: string) => {
+    try {
+      const response = await axios.get(`/api/products?email=${email}`);
+      const products = response.data.map((product: any) => ({
+        id: product.id,
+        foodName: product.foodName,
+        category: product.category,
+        typeFood: product.typeFood,
+        quantity: product.quantity,
+        typeMeasure: product.typeMeasure,
+        dateEntry: new Date(product.dateEntry),
+        expirationDate: product.expirationDate ? new Date(product.expirationDate) : null
+      }));
+      setUser({
+        email,
+        products
+      });
+      localStorage.setItem('user', JSON.stringify({ email, products }));
+    } catch (error) {
+      console.error('error fetching products:', error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, addProduct, createAccount, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, addProduct, createAccount, mostrarproductos, loading }}>
       {children}
     </AuthContext.Provider>
   )

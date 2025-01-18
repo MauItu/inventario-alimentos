@@ -7,11 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AddProductModal } from '@/components/AddProductModal'
 import { ProductList } from '@/components/ProductList'
 import { useRouter } from 'next/navigation'
-import { getProductsByUser } from '@/pages/api/products'
 import { Product } from '@/components/types'
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth()
+  const { user, logout, mostrarproductos } = useAuth()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [products, setProducts] = useState<Product[]>([])
   const router = useRouter()
@@ -20,8 +19,8 @@ export default function DashboardPage() {
     const fetchProducts = async () => {
       if (user) {
         try {
-          const products = await getProductsByUser(user.email)
-          setProducts(products)
+          await mostrarproductos(user.email)
+          setProducts(user.products)
         } catch (error) {
           console.error('Error fetching products:', error)
         }
@@ -29,7 +28,7 @@ export default function DashboardPage() {
     }
 
     fetchProducts()
-  }, [user])
+  }, [user, mostrarproductos])
 
   if (!user) {
     return <div>No autorizado</div>
