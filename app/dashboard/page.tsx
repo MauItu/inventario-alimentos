@@ -7,12 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AddProductModal } from '@/components/AddProductModal'
 import { ProductList } from '@/components/ProductList'
 import { useRouter } from 'next/navigation'
-import { Product } from '@/components/types'
 
 export default function DashboardPage() {
   const { user, logout, mostrarproductos } = useAuth()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [products, setProducts] = useState<Product[]>([])
   const router = useRouter()
 
   useEffect(() => {
@@ -20,7 +18,6 @@ export default function DashboardPage() {
       if (user) {
         try {
           await mostrarproductos(user.email)
-          setProducts(user.products)
         } catch (error) {
           console.error('Error fetching products:', error)
         }
@@ -28,7 +25,7 @@ export default function DashboardPage() {
     }
 
     fetchProducts()
-  }, [user, mostrarproductos])
+  }, [user?.email])
 
   if (!user) {
     return <div>No autorizado</div>
@@ -55,8 +52,8 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           {
-            products.length > 0 ?
-              <ProductList products={products} /> : <p>No hay productos disponibles.</p>
+            user.products.length > 0 ?
+              <ProductList products={user.products} /> : <p>No hay productos disponibles.</p>
           }
         </CardContent>
       </Card>
