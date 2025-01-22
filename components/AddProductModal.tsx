@@ -23,7 +23,7 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
     e.preventDefault();
     const newProduct: Product = {
       //el ID lo genera la BD
-      //id: crypto.randomUUID(),
+      id: '',
       foodName,
       category,
       typeFood,

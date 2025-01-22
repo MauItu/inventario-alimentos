@@ -16,6 +16,7 @@ type AuthContextType = {
   createAccount: (email: string) => Promise<boolean>
   loading: boolean
   mostrarproductos: (email: string) => void
+  deleteProduct: (id: string) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -74,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         if (response.status === 200) {
           const newProduct = response.data;
-          setUser({         //para mostrar la lista de producto, es similar, solo que ese muestra la BD en productos
+          setUser({
             ...user,
             products: [
               ...user.products,
@@ -123,8 +124,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const deleteProduct = async (id: string) => {
+    if (user) {
+      //setLoading(true);
+      try {
+        const response = await axios.delete(`/api/products?id=${id}`, {
+          data: { email: user.email }
+        });
+        if (response.status === 200) {
+          const updatedUser = {
+            ...user,
+            products: user.products.filter(product => product.id !== id)
+          };
+          setUser(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+      } catch (error) {
+        console.error('error deleting product:', error);
+      } //finally {
+      //   setLoading(false);
+      // }
+    }
+  };
   return (
-    <AuthContext.Provider value={{ user, login, logout, addProduct, createAccount, mostrarproductos, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, addProduct, createAccount, mostrarproductos, loading, deleteProduct }}>
       {children}
     </AuthContext.Provider>
   )

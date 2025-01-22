@@ -1,7 +1,7 @@
 export type ProductUnit = 'unidades' | 'kilos' | 'libras';
 
 export interface Product {
-  id?: string;
+  id: string; //quite lo de que puede estar vacio
   foodName: string;
   category: string;
   typeFood: string;
