@@ -1,30 +1,24 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/app/contexts/AuthContext'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AddProductModal } from '@/components/AddProductModal'
-import { ProductList } from '@/components/ProductList'
+import { useAuth } from '@/contexts/AuthContext'
+import { useProducts } from '@/contexts/ProductContext'
+import { Button } from '@/views/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/views/components/ui/card'
+import { AddProductModal } from '@/views/components/AddProductModal'
+import { ProductList } from '@/views/components/ProductList'
 import { useRouter } from 'next/navigation'
 
 export default function DashboardPage() {
-  const { user, logout, mostrarproductos } = useAuth()
+  const { user, logout } = useAuth()
+  const { products, fetchProducts } = useProducts()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      if (user) {
-        try {
-          await mostrarproductos(user.email)
-        } catch (error) {
-          console.error('Error fetching products:', error)
-        }
-      }
+    if (user?.email) {
+      fetchProducts(user.email)
     }
-
-    fetchProducts()
   }, [user?.email])
 
   if (!user) {
@@ -52,8 +46,8 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           {
-            user.products.length > 0 ?
-              <ProductList products={user.products} /> : <p>No hay productos disponibles.</p>
+            products.length > 0 ?
+              <ProductList products={products} /> : <p>No hay productos disponibles.</p>
           }
         </CardContent>
       </Card>

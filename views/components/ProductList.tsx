@@ -1,11 +1,12 @@
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+'use client'
+import { Card, CardContent } from '@/views/components/ui/card'
+import { Button } from '@/views/components/ui/button'
 import { Trash2 } from 'lucide-react'
-import { useAuth } from '@/app/contexts/AuthContext'
-import { Product } from './types'
+import { useProducts } from '@/contexts/ProductContext'
+import { Product } from '@/models/types'
 
 export function ProductList({ products }: { products: Product[] }) {
-  const { deleteProduct } = useAuth()
+  const { deleteProduct } = useProducts()
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -17,7 +18,7 @@ export function ProductList({ products }: { products: Product[] }) {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => deleteProduct(product.id)}//el error de borrar producto no es aqui
+                onClick={() => deleteProduct(product.id)}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
