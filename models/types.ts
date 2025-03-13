@@ -15,6 +15,7 @@ export type Product = {
   typeMeasure: string
   dateEntry: Date
   expirationDate?: Date | null
+  email?: string
 }
 
 // Tipo para respuestas de API

@@ -1,14 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createProduct, getProductsByUser, deleteProductById } from '@/controllers/productController'
-import { ApiResponse } from '@/models/types'
+import { ApiResponse, Product } from '@/models/types'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any>>) {
   try {
     if (req.method === 'POST') {
       // Crear un nuevo producto
       const productData = req.body
       const newProduct = await createProduct(productData)
-      return res.status(200).json(newProduct)
+      return res.status(200).json({ success: true, data: newProduct })
       
     } else if (req.method === 'GET') {
       // Obtener productos por email
@@ -19,12 +19,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       
       const products = await getProductsByUser(email)
-      return res.status(200).json(products)
+      return res.status(200).json({ success: true, data: products })
       
     } else if (req.method === 'DELETE') {
       // Eliminar producto por ID
-      const { id } = req.query
-      const { email } = req.body
+      const { id, email } = req.query
       
       if (!id || typeof id !== 'string') {
         return res.status(400).json({ success: false, error: 'ID is required' })
@@ -35,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       
       await deleteProductById(id, email)
-      return res.status(200).json({ success: true, message: 'Product deleted successfully' })
+      return res.status(200).json({ success: true, data: { message: 'Product deleted successfully' } })
       
     } else {
       return res.status(405).json({ success: false, error: 'Method not allowed' })

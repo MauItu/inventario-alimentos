@@ -1,5 +1,3 @@
-'use client'
-
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ProductProvider } from '@/contexts/ProductContext'
@@ -11,7 +9,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body>
         <AuthProvider>
           <ProductProvider>
