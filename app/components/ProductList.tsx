@@ -1,6 +1,6 @@
 'use client'
-import { Card, CardContent } from '@/views/components/ui/card'
-import { Button } from '@/views/components/ui/button'
+import { Card, CardContent } from '@/app/components/ui/card'
+import { Button } from '@/app/components/ui/button'
 import { Trash2 } from 'lucide-react'
 import { useProducts } from '@/contexts/ProductContext'
 import { Product } from '@/models/types'

@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProducts } from '@/contexts/ProductContext'
-import { Button } from '@/views/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/views/components/ui/card'
-import { AddProductModal } from '@/views/components/AddProductModal'
-import { ProductList } from '@/views/components/ProductList'
+import { Button } from '@/app/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card'
+import { AddProductModal } from '@/app/components/AddProductModal'
+import { ProductList } from '@/app/components/ProductList'
 import { useRouter } from 'next/navigation'
 
 export default function DashboardPage() {

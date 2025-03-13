@@ -3,7 +3,7 @@
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ProductProvider } from '@/contexts/ProductContext'
-import { Toaster } from '@/views/components/ui/toaster'
+import { Toaster } from '@/app/components/ui/toaster'
 
 export default function RootLayout({
   children,
