@@ -35,12 +35,16 @@ export default function DashboardPage() {
     logout()
     router.push('/')
   }
+  const gptiar = () => {
+    //TODO:llamar a la funcion de get del autcontext para recuperar los alimentos, luego crear una clase, para mostrar los alimentos(sin html), luego esta utiliza a product para recuperar los datos del metodo get(especificando los atributos como "product.categoria")")
+  }
 
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Bienvenido, {user.email}</h1>
         <div>
+          <Button onClick={gptiar} className="mr-2">GePeTiar 🤙🏻</Button>
           <Button onClick={() => setIsModalOpen(true)} className="mr-2">Agregar Producto</Button>
           <Button onClick={handleLogout} variant="outline">Cerrar sesión</Button>
         </div>
