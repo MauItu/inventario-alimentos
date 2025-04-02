@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import axios from 'axios'
 import { Product } from '@/components/types'
+import { ChatGPTService } from '@/pages/api/chatgpt/apigpt'
 
 type User = {
   email: string
@@ -17,6 +18,7 @@ type AuthContextType = {
   loading: boolean
   mostrarproductos: (email: string) => void
   deleteProduct: (id: string) => void
+  generarRecetas: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -104,7 +106,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const mostrarproductos = async (email: string) => {
     try {
       const response = await axios.get(`/api/products?email=${email}`);
-      const products = response.data.map((product: any) => ({
+      const products = response.data.map((product: {
+        id: string;
+        foodName: string;
+        category: string;
+        typeFood: string;
+        quantity: number;
+        typeMeasure: string;
+        dateEntry: string;
+        expirationDate: string | null;
+      }) => ({
         id: product.id,
         foodName: product.foodName,
         category: product.category,
@@ -146,8 +157,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // }
     }
   };
+  const generarRecetas = async () => {
+    if (user) {
+      try {
+        console.log('Iniciando generación de recetas para:', user.email);
+        // Verificamos primero si hay productos
+        if (!user.products || user.products.length === 0) {
+          console.error('No hay productos registrados para generar recetas');
+          alert('Necesitas agregar productos antes de generar recetas');
+          return;
+        }
+        
+        await ChatGPTService.generarRecetas(user.email);
+        console.log('Proceso de generación de recetas completado');
+      } catch (error) {
+        console.error('Error generando recetas:', error);
+        alert('Error al generar recetas. Por favor, inténtelo más tarde.');
+      }
+    } else {
+      console.error('No hay usuario autenticado');
+      alert('Necesitas iniciar sesión para generar recetas');
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, addProduct, createAccount, mostrarproductos, loading, deleteProduct }}>
+    <AuthContext.Provider value={{ user, login, logout, addProduct, createAccount, mostrarproductos, loading, deleteProduct, generarRecetas }}>
       {children}
     </AuthContext.Provider>
   )

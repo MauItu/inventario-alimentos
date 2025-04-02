@@ -9,7 +9,7 @@ import { ProductList } from '@/components/ProductList'
 import { useRouter } from 'next/navigation'
 
 export default function DashboardPage() {
-  const { user, logout, mostrarproductos } = useAuth()
+  const { user, logout, mostrarproductos, generarRecetas } = useAuth()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const router = useRouter()
 
@@ -25,7 +25,7 @@ export default function DashboardPage() {
     }
 
     fetchProducts()
-  }, [user?.email])
+  }, [user?.email, mostrarproductos])
 
   if (!user) {
     return <div>No autorizado</div>
@@ -35,8 +35,17 @@ export default function DashboardPage() {
     logout()
     router.push('/')
   }
-  const gptiar = () => {
-    //TODO:llamar a la funcion de get del autcontext para recuperar los alimentos, luego crear una clase, para mostrar los alimentos(sin html), luego esta utiliza a product para recuperar los datos del metodo get(especificando los atributos como "product.categoria")")
+  const gptiar = async () => {
+    try {
+      console.log('Iniciando proceso de GPTiar...');
+      
+      // Mostrar mensaje de carga
+      alert('Generando recetas con tus ingredientes. Por favor espera...');
+      
+      await generarRecetas();
+    } catch (error) {
+      console.error('Error al generar recetas:', error);
+    }
   }
 
   return (
