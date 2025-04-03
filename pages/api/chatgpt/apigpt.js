@@ -9,7 +9,7 @@ function cleanJsonResponse(content) {
     // Si el contenido ya es JSON válido, lo retornamos directamente
     try {
       return JSON.parse(content);
-    } catch (e) {
+    } catch {
       // No es JSON válido, continuamos limpiando
     }
     
@@ -132,7 +132,7 @@ export default async function handler(req, res) {
     yPos += 15;
     
     // Añadir cada receta al PDF
-    recetasJson.recetas.forEach((receta, index) => {
+    recetasJson.recetas.forEach((receta) => {
       if (yPos > 260) {
         pdf.addPage();
         yPos = 10;
