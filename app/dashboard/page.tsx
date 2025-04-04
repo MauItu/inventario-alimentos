@@ -25,7 +25,7 @@ export default function DashboardPage() {
     }
 
     fetchProducts()
-  }, [user?.email, mostrarproductos])
+  }, [user?.email])
 
   if (!user) {
     return <div>No autorizado</div>
