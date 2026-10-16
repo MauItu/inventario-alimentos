@@ -11,3 +11,9 @@ export interface Product {
   expirationDate?: Date | null;
   email?: string;
 }
+export interface Recipe {
+  dia: string;
+  titulo: string;
+  ingredientes: string[];
+  preparacion: string[];
+}

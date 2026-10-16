@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import axios from 'axios'
 import { Product } from '@/components/types'
-import { ChatGPTService } from '@/pages/api/chatgpt/apigpt'
+import { requestRecipes } from '@/lib/recipes-client'
 
 type User = {
   email: string
@@ -13,7 +13,7 @@ type AuthContextType = {
   user: User | null
   login: (email: string) => Promise<boolean>
   logout: () => void
-  addProduct: (product: Product) => void
+  addProduct: (product: Product) => Promise<void>
   createAccount: (email: string) => Promise<boolean>
   loading: boolean
   mostrarproductos: (email: string) => void
@@ -63,8 +63,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const createAccount = async (email: string) => {
-    const response = await axios.post('/api/users', { email })
-    return response.status === 200
+    try {
+      const response = await axios.post('/api/users', { email })
+      const user = {
+        email: response.data.email,
+        products: []
+      }
+      setUser(user)
+      localStorage.setItem('user', JSON.stringify(user))
+      return true
+    } catch (error) {
+      console.log('error:', error)
+      return false
+    }
   }
 
   const addProduct = async (product: Product) => {
@@ -77,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         if (response.status === 200) {
           const newProduct = response.data;
-          setUser({
+          const updatedUser = {
             ...user,
             products: [
               ...user.products,
@@ -92,11 +103,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 expirationDate: newProduct.expirationDate
               }
             ]
-          });
-          localStorage.setItem('user', JSON.stringify(user));
+          };
+          setUser(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
         }
       } catch (error) {
-        console.error('error papi adding product:', error);
+        console.error('error adding product:', error);
+        // El modal muestra el toast de error
+        throw error;
       } finally {
         setLoading(false);
       }
@@ -168,7 +182,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
         
-        await ChatGPTService.generarRecetas(user.email);
+        await requestRecipes(user.email);
         console.log('Proceso de generación de recetas completado');
       } catch (error) {
         console.error('Error generando recetas:', error);
