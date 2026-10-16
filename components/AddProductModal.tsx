@@ -147,7 +147,7 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
             </div>
           )}
           <div className="flex justify-between">
-            <Button variant="outline" onClick={onClose}>Cancelar</Button>
+            <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
             <Button type="submit" disabled={loading}>{
               loading ? 'Agregando...' : 'Agregar Producto'
               }</Button>
