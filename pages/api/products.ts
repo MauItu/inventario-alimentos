@@ -1,25 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { createProduct, deleteProductById, getProductsByUser } from '@/lib/services/products'
+import { createProduct, deleteProductById, getProductsByUser, newProductSchema } from '@/lib/services/products'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (req.method === 'POST') {
-    const { foodName, category, typeFood, quantity, typeMeasure, dateEntry, expirationDate, email } = req.body
+    const parsed = newProductSchema.safeParse(req.body)
 
-    if (!foodName || !category || !typeFood || typeof quantity !== 'number' || !typeMeasure || !dateEntry || !email) {
-      return res.status(400).json({ error: 'All fields are required' })
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Invalid product data' })
     }
 
     try {
-      const newProduct = await createProduct({
-        foodName,
-        category,
-        typeFood,
-        quantity,
-        typeMeasure,
-        dateEntry,
-        expirationDate,
-        email,
-      })
+      const newProduct = await createProduct(parsed.data)
       return res.status(200).json(newProduct)
     } catch (error) {
       console.error('Error creating product:', error)

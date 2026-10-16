@@ -1,6 +1,7 @@
 'use client'
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import axios from 'axios'
+import type { Category, FoodType, MeasureUnit } from '@prisma/client'
 import { Product } from '@/components/types'
 import { requestRecipes } from '@/lib/recipes-client'
 
@@ -123,10 +124,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const products = response.data.map((product: {
         id: string;
         foodName: string;
-        category: string;
-        typeFood: string;
+        category: Category;
+        typeFood: FoodType;
         quantity: number;
-        typeMeasure: string;
+        typeMeasure: MeasureUnit;
         dateEntry: string;
         expirationDate: string | null;
       }) => ({

@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-react'
 import { useAuth } from '@/app/contexts/AuthContext'
+import { CATEGORY_LABELS, FOOD_TYPE_LABELS } from '@/lib/product-labels'
 import { Product } from './types'
 
 export function ProductList({ products }: { products: Product[] }) {
@@ -22,8 +23,8 @@ export function ProductList({ products }: { products: Product[] }) {
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
-            <p className="text-sm text-gray-600 mb-1">Categoría: {product.category}</p>
-            <p className="text-sm text-gray-600 mb-1">Tipo: {product.typeFood}</p>
+            <p className="text-sm text-gray-600 mb-1">Categoría: {CATEGORY_LABELS[product.category]}</p>
+            <p className="text-sm text-gray-600 mb-1">Tipo: {FOOD_TYPE_LABELS[product.typeFood]}</p>
             <p className="text-sm text-gray-600 mb-1">Cantidad: {product.quantity} {product.typeMeasure}</p>
             <p className="text-sm text-gray-600 mb-1">Fecha de ingreso: {new Date(product.dateEntry).toLocaleDateString()} </p>
             {product.expirationDate && (

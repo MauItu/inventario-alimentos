@@ -10,23 +10,47 @@ datasource db {
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
+enum Category {
+  lacteos
+  frutas
+  vegetales
+  carnes
+}
+
+enum FoodType {
+  perecedero
+  no_perecedero @map("no perecedero")
+}
+
+enum MeasureUnit {
+  unidades
+  kilos
+  libras
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  food      Food[]   @relation(name: "UserFoods")
+  food Food[] @relation(name: "UserFoods")
 }
 
 model Food {
-  id          String   @id @default(cuid())
-  foodName    String   
-  category    String //lacrteos, proteina, verduras, frutas
-  typeFood    String //si es pedecedero o no
-  quantity    Int
-  typeMeasure String
-  dateEntry   DateTime
+  id             String      @id @default(cuid())
+  foodName       String
+  category       Category
+  typeFood       FoodType
+  quantity       Float
+  typeMeasure    MeasureUnit
+  dateEntry      DateTime
   expirationDate DateTime?
-  email       String
+  userId         String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
-  user        User  @relation(name: "UserFoods", fields: [email], references: [email])
+  user User @relation(name: "UserFoods", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

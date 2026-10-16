@@ -7,20 +7,30 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/app/hooks/use-toast';
-import { Product, ProductUnit } from './types';
+import type { Category, FoodType, MeasureUnit } from '@prisma/client';
+import { CATEGORY_LABELS, FOOD_TYPE_LABELS, MEASURE_UNIT_LABELS } from '@/lib/product-labels';
+import { Product } from './types';
 
 export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { addProduct, loading} = useAuth();
   const [foodName, setFoodName] = useState('');
-  const [category, setCategory] = useState('');
-  const [typeFood, setTypeFood] = useState<'perecedero' | 'no perecedero'>('perecedero');
+  const [category, setCategory] = useState<Category | ''>('');
+  const [typeFood, setTypeFood] = useState<FoodType>('perecedero');
   const [quantity, setQuantity] = useState('');
-  const [typeMeasure, setTypeMeasure] = useState<ProductUnit>('unidades');
+  const [typeMeasure, setTypeMeasure] = useState<MeasureUnit>('unidades');
   const [dateEntry, setDateEntry] = useState('');
   const [expirationDate, setExpirationDate] = useState('');
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!category) {
+      toast({
+        title: "Falta la categoría",
+        description: "Selecciona una categoría para el producto.",
+        variant: "destructive",
+      });
+      return;
+    }
     const newProduct: Product = {
       //el ID lo genera la BD
       id: '',
@@ -77,28 +87,27 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
           </div>
           <div>
             <Label htmlFor="category">Categoría</Label>
-            <Select value={category} onValueChange={setCategory}>
+            <Select value={category} onValueChange={(value: Category) => setCategory(value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona una categoría" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="lacteos">Lácteos</SelectItem>
-                <SelectItem value="frutas">Frutas</SelectItem>
-                <SelectItem value="vegetales">Vegetales</SelectItem>
-                <SelectItem value="carnes">Carnes</SelectItem>
+                {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div>
             <Label>Tipo de alimento</Label>
-            <RadioGroup value={typeFood} onValueChange={(value: 'perecedero' | 'no perecedero') => setTypeFood(value)}>
+            <RadioGroup value={typeFood} onValueChange={(value: FoodType) => setTypeFood(value)}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="perecedero" id="perecedero" />
-                <Label htmlFor="perecedero">Perecedero</Label>
+                <Label htmlFor="perecedero">{FOOD_TYPE_LABELS.perecedero}</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no perecedero" id="no-perecedero" />
-                <Label htmlFor="no-perecedero">No perecedero</Label>
+                <RadioGroupItem value="no_perecedero" id="no-perecedero" />
+                <Label htmlFor="no-perecedero">{FOOD_TYPE_LABELS.no_perecedero}</Label>
               </div>
             </RadioGroup>
           </div>
@@ -108,18 +117,20 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
               <Input
                 id="quantity"
                 type="number"
+                step="any"
+                min="0.01"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 required
               />
-              <Select value={typeMeasure} onValueChange={(value: ProductUnit) => setTypeMeasure(value)}>
+              <Select value={typeMeasure} onValueChange={(value: MeasureUnit) => setTypeMeasure(value)}>
                 <SelectTrigger className="w-[110px]">
                   <SelectValue placeholder="Unidad" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="unidades">Unidades</SelectItem>
-                  <SelectItem value="kilos">Kilos</SelectItem>
-                  <SelectItem value="libras">Libras</SelectItem>
+                  {Object.entries(MEASURE_UNIT_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

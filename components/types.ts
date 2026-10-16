@@ -1,15 +1,14 @@
-export type ProductUnit = 'unidades' | 'kilos' | 'libras';
+import type { Category, FoodType, MeasureUnit } from '@prisma/client';
 
 export interface Product {
   id: string;
   foodName: string;
-  category: string;
-  typeFood: string;
+  category: Category;
+  typeFood: FoodType;
   quantity: number;
-  typeMeasure: ProductUnit | string;
+  typeMeasure: MeasureUnit;
   dateEntry: Date;
   expirationDate?: Date | null;
-  email?: string;
 }
 export interface Recipe {
   dia: string;
