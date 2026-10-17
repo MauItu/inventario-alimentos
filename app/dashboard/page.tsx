@@ -1,61 +1,91 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/app/contexts/AuthContext'
+import { useProducts } from '@/hooks/use-products'
+import { toast } from '@/hooks/use-toast'
+import { requestRecipes } from '@/lib/recipes-client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AddProductModal } from '@/components/AddProductModal'
 import { ProductList } from '@/components/ProductList'
-import { useRouter } from 'next/navigation'
 
-export default function DashboardPage() {
-  const { user, logout, mostrarproductos, generarRecetas } = useAuth()
+export default function DashboardPage(): React.JSX.Element | null {
+  const { email, ready, logout } = useAuth()
+  const { products, loading, error, addProduct, deleteProduct } = useProducts(email)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [generating, setGenerating] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      if (user) {
-        try {
-          await mostrarproductos(user.email)
-        } catch (error) {
-          console.error('Error fetching products:', error)
-        }
-      }
+    if (ready && !email) {
+      router.replace('/')
+    }
+  }, [ready, email, router])
+
+  if (!ready || !email) {
+    return null
+  }
+
+  const handleDelete = async (id: string): Promise<void> => {
+    try {
+      await deleteProduct(id)
+    } catch (error) {
+      console.error('Error al eliminar el producto:', error)
+      toast({
+        title: 'Error',
+        description: 'No se pudo eliminar el producto.',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleGenerateRecipes = async (): Promise<void> => {
+    if (products.length === 0) {
+      toast({
+        title: 'Sin productos',
+        description: 'Agrega productos antes de generar recetas.',
+        variant: 'destructive',
+      })
+      return
     }
 
-    fetchProducts()
-  }, [user?.email])
+    setGenerating(true)
+    toast({
+      title: 'Generando recetas',
+      description: 'Esto puede tardar hasta un minuto. Por favor espera...',
+      duration: Infinity,
+    })
 
-  if (!user) {
-    return <div>No autorizado</div>
-  }
-
-  const handleLogout = () => {
-    logout()
-    router.push('/')
-  }
-  const gptiar = async () => {
     try {
-      console.log('Iniciando proceso de GPTiar...');
-      
-      // Mostrar mensaje de carga
-      alert('Generando recetas con tus ingredientes. Por favor espera...');
-      
-      await generarRecetas();
+      await requestRecipes(email)
+      toast({
+        title: 'Recetas listas',
+        description: 'Se descargó el PDF con las recetas de la semana.',
+      })
     } catch (error) {
-      console.error('Error al generar recetas:', error);
+      console.error('Error al generar recetas:', error)
+      toast({
+        title: 'Error',
+        description: 'No se pudieron generar las recetas. Inténtalo de nuevo en unos minutos.',
+        variant: 'destructive',
+      })
+    } finally {
+      setGenerating(false)
     }
   }
 
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Bienvenido, {user.email}</h1>
+        <h1 className="text-2xl font-bold">Bienvenido, {email}</h1>
         <div>
-          <Button onClick={gptiar} className="mr-2">GePeTiar 🤙🏻</Button>
+          <Button onClick={handleGenerateRecipes} disabled={generating} className="mr-2">
+            {generating ? 'Generando...' : 'GePeTiar 🤙🏻'}
+          </Button>
           <Button onClick={() => setIsModalOpen(true)} className="mr-2">Agregar Producto</Button>
-          <Button onClick={handleLogout} variant="outline">Cerrar sesión</Button>
+          <Button onClick={logout} variant="outline">Cerrar sesión</Button>
         </div>
       </div>
 
@@ -64,14 +94,19 @@ export default function DashboardPage() {
           <CardTitle>Lista de Productos</CardTitle>
         </CardHeader>
         <CardContent>
-          {
-            user.products.length > 0 ?
-              <ProductList products={user.products} /> : <p>No hay productos disponibles.</p>
-          }
+          {loading ? (
+            <p>Cargando productos...</p>
+          ) : error ? (
+            <p>No se pudieron cargar los productos. Recarga la página para intentarlo de nuevo.</p>
+          ) : products.length > 0 ? (
+            <ProductList products={products} onDelete={handleDelete} />
+          ) : (
+            <p>No hay productos disponibles.</p>
+          )}
         </CardContent>
       </Card>
 
-      <AddProductModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <AddProductModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onAdd={addProduct} />
     </div>
   )
 }

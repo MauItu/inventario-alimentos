@@ -5,19 +5,19 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { toast } from '@/app/hooks/use-toast'
+import { toast } from '@/hooks/use-toast'
 
-export default function LoginPage() {
+export default function LoginPage(): React.JSX.Element {
   const [email, setEmail] = useState('')
   const { login, createAccount } = useAuth()
   const router = useRouter()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
-    const isLoggedIn = await login(email)
-    if (isLoggedIn) {
+    const result = await login(email)
+    if (result === 'ok') {
       router.push('/dashboard')
-    } else {
+    } else if (result === 'not_found') {
       toast({
         title: "Usuario no registrado",
         description: "¿Deseas crear una nueva cuenta?",
@@ -27,11 +27,18 @@ export default function LoginPage() {
           </Button>
         ),
       })
+    } else {
+      toast({
+        title: "Error",
+        description: "No se pudo iniciar sesión. Inténtalo de nuevo en unos minutos.",
+        variant: "destructive",
+      })
     }
   }
 
-  const handleCreateAccount = async () => {
-    if (await createAccount(email)) {
+  const handleCreateAccount = async (): Promise<void> => {
+    const result = await createAccount(email)
+    if (result === 'ok') {
       toast({
         title: "Cuenta creada",
         description: "Se ha creado una nueva cuenta con éxito.",
@@ -40,7 +47,9 @@ export default function LoginPage() {
     } else {
       toast({
         title: "Error",
-        description: "No se pudo crear la cuenta. El correo ya está en uso.",
+        description: result === 'exists'
+          ? "No se pudo crear la cuenta. El correo ya está en uso."
+          : "No se pudo crear la cuenta. Inténtalo de nuevo en unos minutos.",
         variant: "destructive",
       })
     }
@@ -64,4 +73,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

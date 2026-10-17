@@ -1,18 +1,23 @@
 import { useState } from 'react';
-import { useAuth } from '@/app/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from '@/app/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import type { Category, FoodType, MeasureUnit } from '@prisma/client';
 import { CATEGORY_LABELS, FOOD_TYPE_LABELS, MEASURE_UNIT_LABELS } from '@/lib/product-labels';
-import { Product } from './types';
+import type { NewProduct } from './types';
 
-export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const { addProduct, loading} = useAuth();
+interface AddProductModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onAdd: (product: NewProduct) => Promise<void>;
+}
+
+export function AddProductModal({ isOpen, onClose, onAdd }: AddProductModalProps): React.JSX.Element {
+  const [submitting, setSubmitting] = useState(false);
   const [foodName, setFoodName] = useState('');
   const [category, setCategory] = useState<Category | ''>('');
   const [typeFood, setTypeFood] = useState<FoodType>('perecedero');
@@ -21,7 +26,7 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
   const [dateEntry, setDateEntry] = useState('');
   const [expirationDate, setExpirationDate] = useState('');
 
-  const handleAddProduct = async (e: React.FormEvent) => {
+  const handleAddProduct = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!category) {
       toast({
@@ -31,9 +36,7 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
       });
       return;
     }
-    const newProduct: Product = {
-      //el ID lo genera la BD
-      id: '',
+    const newProduct: NewProduct = {
       foodName,
       category,
       typeFood,
@@ -42,8 +45,9 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
       dateEntry: new Date(dateEntry),
       expirationDate: typeFood === 'perecedero' ? new Date(expirationDate) : undefined,
     };
+    setSubmitting(true);
     try {
-      await addProduct(newProduct);
+      await onAdd(newProduct);
       toast({
         title: "Producto agregado",
         description: "El producto ha sido agregado exitosamente.",
@@ -56,10 +60,12 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
         description: "Hubo un error al agregar el producto.",
         variant: "destructive",
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleAddAnother = () => {
+  const handleAddAnother = (): void => {
     setFoodName('');
     setCategory('');
     setTypeFood('perecedero');
@@ -159,9 +165,9 @@ export function AddProductModal({ isOpen, onClose }: { isOpen: boolean; onClose:
           )}
           <div className="flex justify-between">
             <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
-            <Button type="submit" disabled={loading}>{
-              loading ? 'Agregando...' : 'Agregar Producto'
-              }</Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? 'Agregando...' : 'Agregar Producto'}
+            </Button>
           </div>
         </form>
       </DialogContent>

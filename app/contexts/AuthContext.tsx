@@ -1,30 +1,24 @@
 'use client'
-import React, { createContext, useContext, useState, useEffect } from 'react'
-import axios from 'axios'
-import type { Category, FoodType, MeasureUnit } from '@prisma/client'
-import { Product } from '@/components/types'
-import { requestRecipes } from '@/lib/recipes-client'
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import { ApiError, fetchJson, jsonBody } from '@/lib/api-client'
 
-type User = {
-  email: string
-  products: Product[]
-}
+const STORAGE_KEY = 'user'
+
+export type LoginResult = 'ok' | 'not_found' | 'error'
+export type CreateAccountResult = 'ok' | 'exists' | 'error'
 
 type AuthContextType = {
-  user: User | null
-  login: (email: string) => Promise<boolean>
+  email: string | null
+  // false hasta leer localStorage: antes de eso no se sabe si hay sesión
+  ready: boolean
+  login: (email: string) => Promise<LoginResult>
+  createAccount: (email: string) => Promise<CreateAccountResult>
   logout: () => void
-  addProduct: (product: Product) => Promise<void>
-  createAccount: (email: string) => Promise<boolean>
-  loading: boolean
-  mostrarproductos: (email: string) => void
-  deleteProduct: (id: string) => void
-  generarRecetas: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext)
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider')
@@ -32,171 +26,71 @@ export const useAuth = () => {
   return context
 }
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(false)
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
+// Las sesiones guardadas por versiones anteriores también traen products; se ignoran
+function readStoredEmail(): string | null {
+  try {
+    const stored: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null')
+    if (stored && typeof stored === 'object' && 'email' in stored && typeof stored.email === 'string') {
+      return stored.email
     }
+    return null
+  } catch {
+    return null
+  }
+}
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [email, setEmail] = useState<string | null>(null)
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    setEmail(readStoredEmail())
+    setReady(true)
   }, [])
 
-  const login = async (email: string) => {
+  const saveEmail = (value: string): void => {
+    setEmail(value)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ email: value }))
+  }
+
+  const login = async (value: string): Promise<LoginResult> => {
     try {
-      const response = await axios.get(`/api/users/${email}`)
-      const user = {
-        email: response.data.email,
-        products: []
-      }
-      setUser(user)
-      localStorage.setItem('user', JSON.stringify(user))
-      return response.status === 200
+      const user = await fetchJson<{ email: string }>(`/api/users/${encodeURIComponent(value)}`)
+      saveEmail(user.email)
+      return 'ok'
     } catch (error) {
-      console.log('error:', error)
-      return false
+      if (error instanceof ApiError && error.status === 404) {
+        return 'not_found'
+      }
+      console.error('Error al iniciar sesión:', error)
+      return 'error'
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem('user')
-  }
-
-  const createAccount = async (email: string) => {
+  const createAccount = async (value: string): Promise<CreateAccountResult> => {
     try {
-      const response = await axios.post('/api/users', { email })
-      const user = {
-        email: response.data.email,
-        products: []
-      }
-      setUser(user)
-      localStorage.setItem('user', JSON.stringify(user))
-      return true
+      const user = await fetchJson<{ email: string }>('/api/users', {
+        method: 'POST',
+        ...jsonBody({ email: value }),
+      })
+      saveEmail(user.email)
+      return 'ok'
     } catch (error) {
-      console.log('error:', error)
-      return false
+      if (error instanceof ApiError && error.status === 409) {
+        return 'exists'
+      }
+      console.error('Error al crear la cuenta:', error)
+      return 'error'
     }
   }
 
-  const addProduct = async (product: Product) => {
-    if (user) {
-      setLoading(true)
-      try {
-        const response = await axios.post('/api/products', {
-          ...product,
-          email: user.email
-        });
-        if (response.status === 200) {
-          const newProduct = response.data;
-          const updatedUser = {
-            ...user,
-            products: [
-              ...user.products,
-              {
-                id: newProduct.id,
-                foodName: newProduct.foodName,
-                category: newProduct.category,
-                typeFood: newProduct.typeFood,
-                quantity: newProduct.quantity,
-                typeMeasure: newProduct.typeMeasure,
-                dateEntry: newProduct.dateEntry,
-                expirationDate: newProduct.expirationDate
-              }
-            ]
-          };
-          setUser(updatedUser);
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-        }
-      } catch (error) {
-        console.error('error adding product:', error);
-        // El modal muestra el toast de error
-        throw error;
-      } finally {
-        setLoading(false);
-      }
-    }
+  const logout = (): void => {
+    setEmail(null)
+    localStorage.removeItem(STORAGE_KEY)
   }
-
-  const mostrarproductos = async (email: string) => {
-    try {
-      const response = await axios.get(`/api/products?email=${email}`);
-      const products = response.data.map((product: {
-        id: string;
-        foodName: string;
-        category: Category;
-        typeFood: FoodType;
-        quantity: number;
-        typeMeasure: MeasureUnit;
-        dateEntry: string;
-        expirationDate: string | null;
-      }) => ({
-        id: product.id,
-        foodName: product.foodName,
-        category: product.category,
-        typeFood: product.typeFood,
-        quantity: product.quantity,
-        typeMeasure: product.typeMeasure,
-        dateEntry: new Date(product.dateEntry),
-        expirationDate: product.expirationDate ? new Date(product.expirationDate) : null
-      }));
-      setUser({
-        email,
-        products
-      });
-      localStorage.setItem('user', JSON.stringify({ email, products }));
-    } catch (error) {
-      console.error('error fetching products:', error);
-    }
-  };
-
-  const deleteProduct = async (id: string) => {
-    if (user) {
-      //setLoading(true);
-      try {
-        const response = await axios.delete(`/api/products?id=${id}`, {
-          data: { email: user.email }
-        });
-        if (response.status === 200) {
-          const updatedUser = {
-            ...user,
-            products: user.products.filter(product => product.id !== id)
-          };
-          setUser(updatedUser);
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-        }
-      } catch (error) {
-        console.error('error deleting product:', error);
-      } //finally {
-      //   setLoading(false);
-      // }
-    }
-  };
-  const generarRecetas = async () => {
-    if (user) {
-      try {
-        console.log('Iniciando generación de recetas para:', user.email);
-        // Verificamos primero si hay productos
-        if (!user.products || user.products.length === 0) {
-          console.error('No hay productos registrados para generar recetas');
-          alert('Necesitas agregar productos antes de generar recetas');
-          return;
-        }
-        
-        await requestRecipes(user.email);
-        console.log('Proceso de generación de recetas completado');
-      } catch (error) {
-        console.error('Error generando recetas:', error);
-        alert('Error al generar recetas. Por favor, inténtelo más tarde.');
-      }
-    } else {
-      console.error('No hay usuario autenticado');
-      alert('Necesitas iniciar sesión para generar recetas');
-    }
-  };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, addProduct, createAccount, mostrarproductos, loading, deleteProduct, generarRecetas }}>
+    <AuthContext.Provider value={{ email, ready, login, createAccount, logout }}>
       {children}
     </AuthContext.Provider>
   )

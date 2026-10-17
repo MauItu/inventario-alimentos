@@ -10,6 +10,9 @@ export interface Product {
   dateEntry: Date;
   expirationDate?: Date | null;
 }
+
+export type NewProduct = Omit<Product, 'id'>;
+
 export interface Recipe {
   dia: string;
   titulo: string;
