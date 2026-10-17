@@ -1,3 +1,4 @@
+import 'server-only'
 import { PrismaClient } from '@prisma/client';
 
 // Reutiliza una sola instancia entre recargas en dev y entre invocaciones en serverless

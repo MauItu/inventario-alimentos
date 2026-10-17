@@ -1,3 +1,4 @@
+import 'server-only'
 import OpenAI from 'openai'
 import { jsPDF } from 'jspdf'
 import { z } from 'zod'

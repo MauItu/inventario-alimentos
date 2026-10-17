@@ -1,7 +1,9 @@
-import { Category, FoodType, MeasureUnit } from '@prisma/client'
+import 'server-only'
+import { Category, FoodType, MeasureUnit, Prisma } from '@prisma/client'
 import type { Food } from '@prisma/client'
 import { z } from 'zod'
-import prisma from '@/prisma/db'
+import prisma from '@/lib/db'
+import { emailSchema } from '@/lib/services/users'
 
 export const newProductSchema = z.object({
   foodName: z.string().trim().min(1).max(100),
@@ -11,24 +13,32 @@ export const newProductSchema = z.object({
   typeMeasure: z.nativeEnum(MeasureUnit),
   dateEntry: z.coerce.date(),
   expirationDate: z.coerce.date().nullish(),
-  email: z.string().min(1),
+  email: emailSchema,
 })
 
 export type NewProductInput = z.infer<typeof newProductSchema>
 
-export async function createProduct(input: NewProductInput): Promise<Food> {
-  return prisma.food.create({
-    data: {
-      foodName: input.foodName,
-      category: input.category,
-      typeFood: input.typeFood,
-      quantity: input.quantity,
-      typeMeasure: input.typeMeasure,
-      dateEntry: input.dateEntry,
-      expirationDate: input.expirationDate ?? null,
-      user: { connect: { email: input.email } },
-    },
-  })
+// Devuelve null si el usuario no existe
+export async function createProduct(input: NewProductInput): Promise<Food | null> {
+  try {
+    return await prisma.food.create({
+      data: {
+        foodName: input.foodName,
+        category: input.category,
+        typeFood: input.typeFood,
+        quantity: input.quantity,
+        typeMeasure: input.typeMeasure,
+        dateEntry: input.dateEntry,
+        expirationDate: input.expirationDate ?? null,
+        user: { connect: { email: input.email } },
+      },
+    })
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      return null
+    }
+    throw error
+  }
 }
 
 export async function getProductsByUser(email: string): Promise<Food[]> {

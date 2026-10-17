@@ -1,6 +1,15 @@
+import 'server-only'
 import type { User } from '@prisma/client'
 import { Prisma } from '@prisma/client'
-import prisma from '@/prisma/db'
+import { z } from 'zod'
+import prisma from '@/lib/db'
+
+// Para buscar usuarios: no exige formato de correo para no dejar fuera cuentas ya creadas
+export const emailSchema = z.string().trim().min(1).max(254)
+
+export const newUserSchema = z.object({
+  email: z.string().trim().email().max(254),
+})
 
 export async function findUserByEmail(email: string): Promise<User | null> {
   return prisma.user.findUnique({
