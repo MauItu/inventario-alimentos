@@ -24,7 +24,7 @@ Aplicación web para llevar el inventario de alimentos de la casa: registras cad
 
 ## Desarrollo local
 
-Requisitos: Node.js 24, npm y una base de datos PostgreSQL (la forma más simple es Docker).
+Requisitos: Node.js 24 (la versión está fijada en `engines` de `package.json`), npm y una base de datos PostgreSQL (la forma más simple es Docker).
 
 ```bash
 git clone https://github.com/MauItu/inventario-alimentos.git
@@ -118,6 +118,7 @@ El código de `lib/db.ts` y `lib/services/` importa `server-only`: si un compone
 La app se despliega en Vercel con cada push. **Un push a `main` va directo a producción.**
 
 - `vercel.json` cambia el comando de build por `scripts/vercel-build.sh`, que ejecuta `npm run build` y, solo en producción, `prisma migrate deploy` después de que el build termina bien.
+- La versión de Node la define `engines.node` en `package.json`, que tiene prioridad sobre el ajuste *Node.js Version* del panel de Vercel. La CI lee el mismo campo.
 - El script necesita `VERCEL_ENV`, así que en Vercel debe estar activa la opción *Automatically expose System Environment Variables* (Settings → Environment Variables).
 - Las variables de la base de datos las crea la integración de Neon y son las mismas en todos los entornos: **los deploys de Preview usan la base de datos de producción**. Por eso los Preview no migran; no abras un Preview con cambios de schema.
 - `GEMINI_API_KEY` se configura a mano en Vercel (Settings → Environment Variables).

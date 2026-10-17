@@ -10,6 +10,9 @@
     "typecheck": "next typegen && tsc --noEmit",
     "postinstall": "prisma generate"
   },
+  "engines": {
+    "node": "24.x"
+  },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
     "@prisma/client": "^6.2.1",
