@@ -1,0 +1,36 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: America/Bogota
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      minor-y-patch:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    # Las versiones mayores (Next 16, Prisma, Tailwind 4, zod 4...) requieren
+    # cambios de código y se actualizan a mano. Las alertas de seguridad siguen llegando.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: America/Bogota
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]

@@ -6,7 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run start` - Start production server
-- `npm run lint` - Run ESLint
+- `npm run lint` - Run ESLint (`eslint .`)
+- `npm run typecheck` - Generate Next.js route types and run `tsc --noEmit`
 - `npm run postinstall` - Generate Prisma client
 
 ## Code Style Guidelines
@@ -20,8 +21,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Error Handling**: Use try/catch for async operations, validate status codes
 
 ## Project Structure
-- `/app` - Next.js pages and app router components
-- `/components` - Reusable React components
-- `/lib` - Utility functions and shared code
-- `/pages/api` - API endpoints
-- `/prisma` - Database schema and client
+- `/app` - Next.js pages and app router components; `/app/contexts` holds the session context
+- `/app/api` - API route handlers (`route.ts`), inputs validated with zod
+- `/components` - Reusable React components; `/components/ui` are shadcn/ui components
+- `/hooks` - React hooks
+- `/lib` - Utility functions and shared code; `/lib/db.ts` is the Prisma client singleton
+- `/lib/services` - Server-only data access and business logic (import `server-only`)
+- `/prisma` - Database schema and migrations
+- `/scripts/vercel-build.sh` - Vercel build: runs `prisma migrate deploy` only in production
+- `/.github` - CI workflow and Dependabot config
